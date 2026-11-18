@@ -1,0 +1,19 @@
+.mon-esc-fw{display:inline-block;margin:.25rem 0 .4rem;padding:.1rem .5rem;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.02em;background:#e2e8f0;color:#0f172a}
+.mon-esc-fw--bluejay{background:#dbeafe;color:#1d4ed8}
+.mon-esc-fw--blheli_32{background:#fee2e2;color:#b91c1c}
+.mon-esc-fw--blheli_s{background:#e0f2fe;color:#0369a1}
+.mon-esc-fw--am32{background:#ede9fe;color:#6d28d9}
+
+.mon-esc-chips{display:flex;flex-wrap:wrap;gap:.5rem;list-style:none;margin:1rem 0;padding:0}
+.mon-esc-chips li{padding:.35rem .7rem;border:1px solid #e2e8f0;border-radius:8px;font-size:.85rem;background:#f8fafc}
+.mon-esc-chips span{display:block;font-size:.7rem;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+
+.mon-esc-fw-filter{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin:0 0 1.25rem;clear:both}
+.mon-esc-fw-filter span{font-weight:600;margin-right:.25rem}
+.mon-esc-fw-filter a{padding:.3rem .8rem;border:1px solid #cbd5e1;border-radius:999px;font-size:.85rem;text-decoration:none;color:inherit}
+.mon-esc-fw-filter a.is-active,.mon-esc-fw-filter a:hover{background:#0f172a;border-color:#0f172a;color:#fff}
+
+.mon-esc-float{position:fixed;right:16px;bottom:16px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.mon-esc-float a{display:block;padding:.65rem 1rem;border-radius:999px;color:#fff;font-weight:700;font-size:.9rem;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.mon-esc-float__zalo{background:#0068ff}
+.mon-esc-float__call{background:#16a34a}
