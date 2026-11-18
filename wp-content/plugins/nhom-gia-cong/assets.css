@@ -1,0 +1,63 @@
+/* Bộ cấu hình gia công ------------------------------------------------- */
+.ndh-unit{font-size:.75em;font-weight:500;color:#64748b;margin-left:2px}
+.ndh-config{display:grid;gap:1rem;width:100%;margin:0 0 1rem;padding:1rem;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc}
+.ndh-field{display:grid;gap:.35rem;margin:0;padding:0;border:0;min-width:0}
+.ndh-field>label,.ndh-field legend{font-weight:700;color:#0f172a;padding:0}
+.ndh-field small{color:#64748b;font-size:.82rem}
+.ndh-fee{font-weight:500;font-size:.82rem;color:#64748b;margin-left:.25rem}
+.ndh-input-unit{display:flex;max-width:260px}
+.ndh-input-unit input{border-radius:8px 0 0 8px !important;font-size:1.1rem;font-weight:700}
+.ndh-input-unit span{display:grid;place-items:center;padding:0 .8rem;border:1px solid #cbd5e1;border-left:0;border-radius:0 8px 8px 0;background:#fff;color:#64748b}
+
+.ndh-bar{background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:.25rem .5rem}
+.ndh-bar__svg{display:block;width:100%;height:auto;max-height:110px}
+.ndh-svg-bar{fill:#cbd5e1;stroke:#64748b;stroke-width:1.2}
+.ndh-svg-slot{stroke:#94a3b8;stroke-width:6;stroke-linecap:butt}
+.ndh-svg-end{font:700 14px sans-serif;fill:#0f172a}
+.ndh-svg-tap{font:700 11px sans-serif;fill:#b45309}
+.ndh-svg-thread{stroke:#b45309;stroke-width:1.6}
+.ndh-svg-hole{fill:#fff;stroke:#0b63ce;stroke-width:2.5}
+.ndh-svg-hole.is-bad{stroke:#dc2626;fill:#fee2e2}
+.ndh-svg-dim{font:600 10px sans-serif;fill:#0b63ce}
+.ndh-svg-len{font:600 11px sans-serif;fill:#475569}
+
+.ndh-holes__list{display:grid;gap:.5rem}
+.ndh-hole{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:.5rem;align-items:end;padding:.5rem;background:#fff;border:1px solid #e2e8f0;border-radius:8px}
+.ndh-hole label{display:grid;gap:.15rem;font-size:.78rem;color:#64748b;font-weight:600}
+.ndh-hole input,.ndh-hole select{padding:.45rem .5rem !important}
+.ndh-hole input.is-invalid{border-color:#dc2626;background:#fef2f2}
+.ndh-hole__remove{width:34px;height:34px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font-size:1.2rem;line-height:1;cursor:pointer;color:#64748b}
+.ndh-hole__remove:hover{background:#fee2e2;color:#dc2626;border-color:#fecaca}
+.ndh-holes__actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.ndh-holes__actions button{padding:.45rem .9rem;border:1px dashed #0b63ce;border-radius:8px;background:#fff;color:#0b63ce;font:600 .88rem/1.2 inherit;cursor:pointer}
+.ndh-holes__actions button:hover{background:#eff6ff}
+.ndh-taps__grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.ndh-taps__grid label{display:grid;gap:.2rem;font-size:.85rem;font-weight:600;color:#475569}
+
+.ndh-summary{border-top:1px solid #e2e8f0;padding-top:.75rem;display:grid;gap:.3rem}
+.ndh-summary__rows div{display:flex;justify-content:space-between;gap:1rem;font-size:.88rem;color:#475569}
+.ndh-summary__total{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.ndh-summary__total span{font-weight:700}
+.ndh-total{font-size:1.35rem;color:#0b63ce}
+
+/* WooCommerce đặt form.cart dạng flex — cho bộ cấu hình chiếm trọn hàng */
+.woocommerce div.product form.cart{flex-wrap:wrap}
+
+/* Thông số */
+.ndh-chips{display:flex;flex-wrap:wrap;gap:.5rem;list-style:none;margin:1rem 0;padding:0}
+.ndh-chips li{padding:.35rem .7rem;border:1px solid #e2e8f0;border-radius:8px;font-size:.85rem;background:#fff}
+.ndh-chips span{display:block;font-size:.7rem;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+
+/* Liên hệ nổi */
+.ndh-float{position:fixed;right:16px;bottom:16px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.ndh-float a{display:block;padding:.65rem 1rem;border-radius:999px;color:#fff;font-weight:700;font-size:.9rem;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.ndh-float__zalo{background:#0068ff}
+.ndh-float__call{background:#16a34a}
+
+@media (max-width:600px){
+	.ndh-hole{grid-template-columns:1fr 1fr auto}
+	.ndh-hole label:first-child{grid-column:1/-1}
+	.ndh-taps__grid{grid-template-columns:1fr}
+}
+.ndh-grand{text-align:right;font-weight:700;color:#0f172a;font-size:.95rem}
+.ndh-grand:empty{display:none}

@@ -1,7 +1,11 @@
 <?php
 /**
- * Dữ liệu khởi tạo cho cửa hàng. Chạy bằng: wp eval-file /scripts/seed.php
+ * Cấu hình WooCommerce + dữ liệu khởi tạo cho shop nhôm định hình.
+ * Chạy bằng: wp eval-file scripts/seed.php   (được gọi từ scripts/install-windows.ps1)
  * An toàn khi chạy lại: chỉ tạo những gì chưa tồn tại.
+ *
+ * Đọc biến môi trường (từ file .env): STORE_PHONE, STORE_ZALO, STORE_ADDRESS, STORE_CITY,
+ * BANK_NAME, BANK_ACCOUNT, BANK_HOLDER, SITE_TAGLINE, SEED_DEMO.
  */
 
 if ( ! class_exists( 'WooCommerce' ) ) {
@@ -13,204 +17,303 @@ $env = static function ( $key, $default = '' ) {
 	return ( false === $v || '' === $v ) ? $default : $v;
 };
 
-/* ---------------------------------------------------------------- Thanh toán */
+/* ---------------------------------------------------------------- Cài đặt chung */
 
-update_option( 'woocommerce_cod_settings', array(
-	'enabled'            => 'yes',
-	'title'              => 'Thanh toán khi nhận hàng (COD)',
-	'description'        => 'Bạn trả tiền mặt cho nhân viên giao hàng khi nhận được sản phẩm.',
-	'instructions'       => 'Vui lòng chuẩn bị đúng số tiền khi nhận hàng.',
-	'enable_for_methods' => array(),
-	'enable_for_virtual' => 'yes',
-) );
-
-update_option( 'woocommerce_bacs_settings', array(
-	'enabled'      => 'yes',
-	'title'        => 'Chuyển khoản ngân hàng',
-	'description'  => 'Chuyển khoản với nội dung là mã đơn hàng. Đơn được giao sau khi chúng tôi nhận được tiền.',
-	'instructions' => 'Vui lòng chuyển khoản với nội dung: mã đơn hàng + số điện thoại.',
-) );
-update_option( 'woocommerce_bacs_accounts', array(
-	array(
-		'account_name'   => $env( 'BANK_HOLDER', 'NGUYEN VAN A' ),
-		'account_number' => $env( 'BANK_ACCOUNT', '0123456789' ),
-		'bank_name'      => $env( 'BANK_NAME', 'Vietcombank' ),
-		'sort_code'      => '',
-		'iban'           => '',
-		'bic'            => '',
+$options = array(
+	'blogdescription'                          => $env( 'SITE_TAGLINE', 'Nhôm định hình cắt – khoan – taro theo yêu cầu' ),
+	'timezone_string'                          => 'Asia/Ho_Chi_Minh',
+	'date_format'                              => 'd/m/Y',
+	'time_format'                              => 'H:i',
+	'start_of_week'                            => 1,
+	'ndh_phone'                                => preg_replace( '/[^0-9+]/', '', $env( 'STORE_PHONE' ) ),
+	'ndh_zalo'                                 => preg_replace( '/[^0-9+]/', '', $env( 'STORE_ZALO' ) ),
+	// WooCommerce — Việt Nam, VNĐ.
+	'woocommerce_default_country'              => 'VN',
+	'woocommerce_store_address'                => $env( 'STORE_ADDRESS' ),
+	'woocommerce_store_city'                   => $env( 'STORE_CITY' ),
+	'woocommerce_currency'                     => 'VND',
+	'woocommerce_currency_pos'                 => 'right_space',
+	'woocommerce_price_thousand_sep'           => '.',
+	'woocommerce_price_decimal_sep'            => ',',
+	'woocommerce_price_num_decimals'           => 0,
+	'woocommerce_weight_unit'                  => 'kg',
+	'woocommerce_dimension_unit'               => 'mm',
+	'woocommerce_allowed_countries'            => 'specific',
+	'woocommerce_specific_allowed_countries'   => array( 'VN' ),
+	'woocommerce_ship_to_countries'            => '',
+	'woocommerce_calc_taxes'                   => 'no',
+	'woocommerce_enable_guest_checkout'        => 'yes',
+	'woocommerce_enable_reviews'               => 'yes',
+	'woocommerce_coming_soon'                  => 'no',
+	'woocommerce_checkout_phone_field'         => 'required',
+	'woocommerce_checkout_company_field'       => 'optional',
+	'woocommerce_checkout_address_2_field'     => 'hidden',
+	'woocommerce_onboarding_profile'           => array( 'skipped' => true ),
+	'woocommerce_task_list_hidden'             => 'yes',
+	'woocommerce_cod_settings'                 => array(
+		'enabled'            => 'yes',
+		'title'              => 'Thanh toán khi nhận hàng (COD)',
+		'description'        => 'Trả tiền mặt khi nhận hàng. Đơn gia công có giá trị lớn có thể được yêu cầu đặt cọc.',
+		'instructions'       => 'Chúng tôi sẽ gọi xác nhận đơn và thông số gia công trước khi cắt.',
+		'enable_for_methods' => array(),
+		'enable_for_virtual' => 'yes',
 	),
-) );
-WP_CLI::log( 'Đã bật COD + chuyển khoản.' );
+	'woocommerce_bacs_settings'                => array(
+		'enabled'      => 'yes',
+		'title'        => 'Chuyển khoản ngân hàng',
+		'description'  => 'Chuyển khoản với nội dung: mã đơn hàng + số điện thoại. Xưởng bắt đầu gia công khi nhận được tiền.',
+		'instructions' => 'Nội dung chuyển khoản: mã đơn hàng + số điện thoại.',
+	),
+	'woocommerce_bacs_accounts'                => array(
+		array(
+			'account_name'   => $env( 'BANK_HOLDER', 'NGUYEN VAN A' ),
+			'account_number' => $env( 'BANK_ACCOUNT', '0123456789' ),
+			'bank_name'      => $env( 'BANK_NAME', 'Vietcombank' ),
+			'sort_code'      => '',
+			'iban'           => '',
+			'bic'            => '',
+		),
+	),
+);
+foreach ( $options as $k => $v ) {
+	update_option( $k, $v );
+}
+WP_CLI::log( 'Đã cấu hình WooCommerce (VNĐ, Việt Nam, COD + chuyển khoản).' );
+
+/* ---------------------------------------------------------------- Trang WooCommerce */
+
+WC_Install::create_pages();
+// Giỏ hàng / thanh toán dạng shortcode để các tuỳ biến (thông số gia công, form địa chỉ VN) hiển thị đầy đủ.
+foreach ( array( 'cart' => '[woocommerce_cart]', 'checkout' => '[woocommerce_checkout]' ) as $wc_page => $shortcode ) {
+	$pid = wc_get_page_id( $wc_page );
+	if ( $pid > 0 && false === strpos( get_post_field( 'post_content', $pid ), $shortcode ) ) {
+		wp_update_post( array( 'ID' => $pid, 'post_content' => $shortcode ) );
+	}
+}
 
 /* ---------------------------------------------------------------- Vận chuyển */
 
 $zone_exists = false;
 foreach ( WC_Shipping_Zones::get_zones() as $z ) {
-	if ( 'Việt Nam' === $z['zone_name'] ) {
-		$zone_exists = true;
-	}
+	$zone_exists = $zone_exists || 'Việt Nam' === $z['zone_name'];
 }
 if ( ! $zone_exists ) {
 	$zone = new WC_Shipping_Zone();
 	$zone->set_zone_name( 'Việt Nam' );
-	$zone->set_zone_order( 0 );
 	$zone->add_location( 'VN', 'country' );
 	$zone->save();
 
-	$flat_id = $zone->add_shipping_method( 'flat_rate' );
-	update_option( "woocommerce_flat_rate_{$flat_id}_settings", array(
-		'title'      => 'Giao hàng tiêu chuẩn (2–4 ngày)',
-		'tax_status' => 'none',
-		'cost'       => '30000',
-	) );
+	$id = $zone->add_shipping_method( 'local_pickup' );
+	update_option( "woocommerce_local_pickup_{$id}_settings", array( 'title' => 'Nhận tại xưởng (miễn phí)', 'tax_status' => 'none', 'cost' => '0' ) );
 
-	$free_id = $zone->add_shipping_method( 'free_shipping' );
-	update_option( "woocommerce_free_shipping_{$free_id}_settings", array(
-		'title'      => 'Miễn phí vận chuyển',
-		'requires'   => 'min_amount',
-		'min_amount' => '1000000',
-	) );
-	WP_CLI::log( 'Đã tạo vùng vận chuyển Việt Nam (30.000đ, free từ 1.000.000đ).' );
+	$id = $zone->add_shipping_method( 'flat_rate' );
+	update_option( "woocommerce_flat_rate_{$id}_settings", array( 'title' => 'Giao hàng tận nơi', 'tax_status' => 'none', 'cost' => '50000' ) );
+
+	$id = $zone->add_shipping_method( 'free_shipping' );
+	update_option( "woocommerce_free_shipping_{$id}_settings", array( 'title' => 'Miễn phí giao hàng', 'requires' => 'min_amount', 'min_amount' => '2000000' ) );
+	WP_CLI::log( 'Đã tạo vận chuyển: nhận tại xưởng, giao 50.000đ, miễn phí từ 2.000.000đ.' );
 }
 
 /* ---------------------------------------------------------------- Danh mục */
 
-$categories = array(
-	'esc'             => array( 'ESC', 'Bộ điều tốc chạy BLHeli_S, BLHeli_32, Bluejay, AM32.' ),
-	'motor'           => array( 'Motor', 'Motor brushless cho FPV, cinewhoop, long range.' ),
-	'flight-controller' => array( 'Flight Controller', 'Mạch bay Betaflight / INAV, stack FC + ESC.' ),
-	'canh-quat'       => array( 'Cánh quạt', 'Cánh 2–7 inch các loại.' ),
-	'pin-lipo'        => array( 'Pin LiPo', 'Pin LiPo / Li-ion 1S–6S.' ),
-	'phu-kien'        => array( 'Phụ kiện', 'Dây, jack, tụ, linh kiện hàn và dụng cụ.' ),
+$cat_defs = array(
+	'nhom-dinh-hinh'   => array( 'Nhôm định hình', 'Thanh nhôm định hình cắt theo chiều dài, khoan lỗ, taro ren theo yêu cầu.', '' ),
+	'phu-kien'         => array( 'Phụ kiện', 'Phụ kiện lắp ráp khung nhôm định hình.', '' ),
+	'ke-goc'           => array( 'Ke góc & liên kết', 'Ke góc, ke ẩn, tấm nối.', 'phu-kien' ),
+	'oc-bulong'        => array( 'Ốc T & bulong', 'Ốc T-nut, ốc trượt, bulong lục giác chìm.', 'phu-kien' ),
+	'ban-le-tay-nam'   => array( 'Bản lề & tay nắm', 'Bản lề, tay nắm, khoá cửa tủ.', 'phu-kien' ),
+	'chan-banh-xe'     => array( 'Chân tăng chỉnh & bánh xe', 'Chân đế, chân tăng chỉnh, bánh xe có khoá.', 'phu-kien' ),
+	'nap-bit-che-ranh' => array( 'Nắp bịt & che rãnh', 'Nắp bịt đầu thanh, nẹp che rãnh.', 'phu-kien' ),
 );
 $cat_ids = array();
-foreach ( $categories as $slug => $info ) {
+foreach ( $cat_defs as $slug => $c ) {
 	$term = get_term_by( 'slug', $slug, 'product_cat' );
-	if ( ! $term ) {
-		$res = wp_insert_term( $info[0], 'product_cat', array( 'slug' => $slug, 'description' => $info[1] ) );
-		$cat_ids[ $slug ] = is_wp_error( $res ) ? 0 : $res['term_id'];
-	} else {
+	if ( $term ) {
 		$cat_ids[ $slug ] = $term->term_id;
+		continue;
 	}
+	$res              = wp_insert_term( $c[0], 'product_cat', array(
+		'slug'        => $slug,
+		'description' => $c[1],
+		'parent'      => $c[2] ? $cat_ids[ $c[2] ] : 0,
+	) );
+	$cat_ids[ $slug ] = is_wp_error( $res ) ? 0 : $res['term_id'];
 }
 
-/* ---------------------------------------------------------------- Ảnh mẫu */
+/* ---------------------------------------------------------------- Ảnh mẫu (GD) */
 
-/**
- * Tạo ảnh PNG đơn giản (nền màu + tên sản phẩm) để site mẫu không bị trống ảnh.
- */
-function mon_esc_seed_image( $title, $color, $label ) {
+/** Lưu ảnh GD thành tệp đính kèm trong thư viện media. */
+function ndh_seed_save_image( $img, $title, $name ) {
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+	$upload = wp_upload_dir();
+	$file   = trailingslashit( $upload['path'] ) . sanitize_file_name( $name ) . '-' . wp_generate_password( 4, false ) . '.png';
+	imagepng( $img, $file );
+	imagedestroy( $img );
+	$id = wp_insert_attachment( array( 'post_title' => $title, 'post_mime_type' => 'image/png', 'post_status' => 'inherit' ), $file );
+	wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
+	return $id;
+}
+
+/** Vẽ chữ to bằng font bitmap có sẵn của GD (không cần file font). */
+function ndh_seed_text( $img, $text, $cx, $cy, $max_w, $rgb ) {
+	$tw    = imagefontwidth( 5 ) * strlen( $text );
+	$th    = imagefontheight( 5 );
+	$small = imagecreatetruecolor( $tw, $th );
+	imagealphablending( $small, false );
+	imagefilledrectangle( $small, 0, 0, $tw, $th, imagecolorallocatealpha( $small, 0, 0, 0, 127 ) );
+	imagesavealpha( $small, true );
+	imagestring( $small, 5, 0, 0, $text, imagecolorallocate( $small, $rgb[0], $rgb[1], $rgb[2] ) );
+	imagealphablending( $img, true );
+	$dw = min( $max_w, $tw * 6 );
+	$dh = (int) ( $th * $dw / $tw );
+	imagecopyresampled( $img, $small, (int) ( $cx - $dw / 2 ), (int) ( $cy - $dh / 2 ), 0, 0, (int) $dw, $dh, $tw, $th );
+	imagedestroy( $small );
+}
+
+/** Ảnh mặt cắt thanh nhôm (1 hoặc 2 module 40x40 ghép ngang). */
+function ndh_seed_profile_image( $title, $label, $modules, $black ) {
 	if ( ! function_exists( 'imagecreatetruecolor' ) ) {
 		return 0;
 	}
-	require_once ABSPATH . 'wp-admin/includes/image.php';
-
 	$w   = 800;
 	$img = imagecreatetruecolor( $w, $w );
-	list( $r, $g, $b ) = sscanf( $color, '#%02x%02x%02x' );
-	$bg    = imagecolorallocate( $img, $r, $g, $b );
-	$dark  = imagecolorallocatealpha( $img, 0, 0, 0, 80 );
-	$white = imagecolorallocate( $img, 255, 255, 255 );
-	imagefilledrectangle( $img, 0, 0, $w, $w, $bg );
-	// Hoạ tiết: vòng tròn + mạch.
-	imagefilledellipse( $img, 400, 360, 420, 420, $dark );
-	imagesetthickness( $img, 6 );
-	for ( $i = 0; $i < 6; $i++ ) {
-		imageline( $img, 150 + $i * 100, 620, 150 + $i * 100, 700, $white );
+	imagefilledrectangle( $img, 0, 0, $w, $w, imagecolorallocate( $img, 241, 245, 249 ) );
+	$metal = $black ? imagecolorallocate( $img, 38, 42, 48 ) : imagecolorallocate( $img, 176, 186, 197 );
+	$edge  = $black ? imagecolorallocate( $img, 15, 17, 20 ) : imagecolorallocate( $img, 120, 132, 146 );
+	$bg    = imagecolorallocate( $img, 241, 245, 249 );
+	$s     = 1 === $modules ? 11 : 7.5; // px mỗi đơn vị (module 40 đơn vị).
+	$ox    = ( $w - 40 * $modules * $s ) / 2;
+	$oy    = 330 - 20 * $s;
+	$pt    = static function ( $x, $y, $deg, $mx ) use ( $s, $ox, $oy ) {
+		$r  = deg2rad( $deg );
+		$dx = $x - 20;
+		$dy = $y - 20;
+		return array( $ox + ( $mx * 40 + 20 + $dx * cos( $r ) - $dy * sin( $r ) ) * $s, $oy + ( 20 + $dx * sin( $r ) + $dy * cos( $r ) ) * $s );
+	};
+	imagefilledrectangle( $img, (int) $ox, (int) $oy, (int) ( $ox + 40 * $modules * $s ), (int) ( $oy + 40 * $s ), $metal );
+	imagerectangle( $img, (int) $ox, (int) $oy, (int) ( $ox + 40 * $modules * $s ), (int) ( $oy + 40 * $s ), $edge );
+	$slot = array( array( 16, -1 ), array( 16, 3.5 ), array( 11, 3.5 ), array( 14.5, 11 ), array( 25.5, 11 ), array( 29, 3.5 ), array( 24, 3.5 ), array( 24, -1 ) );
+	for ( $m = 0; $m < $modules; $m++ ) {
+		$sides = array( 0, 180 );
+		if ( 0 === $m ) {
+			$sides[] = 270;
+		}
+		if ( $modules - 1 === $m ) {
+			$sides[] = 90;
+		}
+		foreach ( $sides as $deg ) {
+			$poly = array();
+			foreach ( $slot as $p ) {
+				list( $x, $y ) = $pt( $p[0], $p[1], $deg, $m );
+				$poly[]        = (int) round( $x );
+				$poly[]        = (int) round( $y );
+			}
+			imagefilledpolygon( $img, $poly, $bg );
+		}
+		list( $cx, $cy ) = $pt( 20, 20, 0, $m );
+		imagefilledellipse( $img, (int) $cx, (int) $cy, (int) ( 8.4 * $s ), (int) ( 8.4 * $s ), $bg );
+		foreach ( array( array( 5.5, 5.5 ), array( 34.5, 5.5 ), array( 5.5, 34.5 ), array( 34.5, 34.5 ) ) as $c ) {
+			list( $cx, $cy ) = $pt( $c[0], $c[1], 0, $m );
+			imagefilledellipse( $img, (int) $cx, (int) $cy, (int) ( 4.4 * $s ), (int) ( 4.4 * $s ), $bg );
+		}
 	}
-	$scale = 6;
-	$tw    = imagefontwidth( 5 ) * strlen( $label );
-	$small = imagecreatetruecolor( $tw, imagefontheight( 5 ) );
-	imagefill( $small, 0, 0, imagecolorallocatealpha( $small, 0, 0, 0, 127 ) );
-	imagesavealpha( $small, true );
-	imagealphablending( $small, false );
-	imagefilledrectangle( $small, 0, 0, $tw, imagefontheight( 5 ), imagecolorallocatealpha( $small, 0, 0, 0, 127 ) );
-	imagestring( $small, 5, 0, 0, $label, imagecolorallocate( $small, 255, 255, 255 ) );
-	imagealphablending( $img, true );
-	$dw = min( 700, $tw * $scale );
-	$dh = (int) ( imagefontheight( 5 ) * $dw / $tw );
-	imagecopyresampled( $img, $small, (int) ( ( $w - $dw ) / 2 ), (int) ( 360 - $dh / 2 ), 0, 0, $dw, $dh, $tw, imagefontheight( 5 ) );
+	ndh_seed_text( $img, $label, 400, 690, 520, array( 15, 23, 42 ) );
+	return ndh_seed_save_image( $img, $title, $label );
+}
 
-	$upload = wp_upload_dir();
-	$file   = trailingslashit( $upload['path'] ) . sanitize_file_name( remove_accents( $label ) ) . '-' . wp_generate_password( 4, false ) . '.png';
-	imagepng( $img, $file );
-	imagedestroy( $img );
-	imagedestroy( $small );
-
-	$attach_id = wp_insert_attachment( array(
-		'post_title'     => $title,
-		'post_mime_type' => 'image/png',
-		'post_status'    => 'inherit',
-	), $file );
-	wp_update_attachment_metadata( $attach_id, wp_generate_attachment_metadata( $attach_id, $file ) );
-	return $attach_id;
+/** Ảnh ô màu có nhãn cho phụ kiện. */
+function ndh_seed_tile_image( $title, $label, $hex ) {
+	if ( ! function_exists( 'imagecreatetruecolor' ) ) {
+		return 0;
+	}
+	$img = imagecreatetruecolor( 800, 800 );
+	list( $r, $g, $b ) = sscanf( $hex, '#%02x%02x%02x' );
+	imagefilledrectangle( $img, 0, 0, 800, 800, imagecolorallocate( $img, $r, $g, $b ) );
+	imagefilledellipse( $img, 400, 400, 460, 460, imagecolorallocatealpha( $img, 255, 255, 255, 100 ) );
+	ndh_seed_text( $img, $label, 400, 400, 640, array( 255, 255, 255 ) );
+	return ndh_seed_save_image( $img, $title, $label );
 }
 
 /* ---------------------------------------------------------------- Sản phẩm mẫu */
 
 if ( '1' === $env( 'SEED_DEMO', '1' ) ) {
-	$products = array(
-		array( 'ESC-BJ-45A4', 'ESC 4in1 45A Bluejay 3–6S', 'esc', 890000, 790000, 25, '#ff5a1f', 'ESC 45A',
-			'ESC 4in1 30x30 chạy Bluejay 48kHz, hỗ trợ bidirectional DShot cho RPM filter.',
-			array( 'firmware' => 'Bluejay', 'current' => '45A (burst 55A)', 'cells' => '3–6S', 'mcu' => 'EFM8BB21', 'size' => '30.5x30.5mm' ), true ),
-		array( 'ESC-B32-55A4', 'ESC 4in1 55A BLHeli_32 6S', 'esc', 1450000, 0, 12, '#e11d48', 'ESC 55A',
-			'ESC 4in1 BLHeli_32 128kHz PWM, đo dòng tích hợp, tụ low-ESR đi kèm.',
-			array( 'firmware' => 'BLHeli_32', 'current' => '55A (burst 65A)', 'cells' => '3–6S', 'mcu' => 'STM32G071', 'size' => '30.5x30.5mm' ), true ),
-		array( 'ESC-AM32-35A', 'ESC đơn 35A AM32 2–6S', 'esc', 320000, 0, 40, '#7c3aed', 'AM32 35A',
-			'ESC đơn mã nguồn mở AM32, cập nhật firmware qua Betaflight passthrough.',
-			array( 'firmware' => 'AM32', 'current' => '35A', 'cells' => '2–6S', 'mcu' => 'AT32F421', 'size' => '12x30mm' ), false ),
-		array( 'ESC-BS-20A4', 'ESC 4in1 20A BLHeli_S Whoop 1–2S', 'esc', 450000, 399000, 30, '#0ea5e9', 'ESC 20A',
-			'ESC 4in1 nhỏ gọn 20x20 cho whoop / toothpick, có thể flash Bluejay.',
-			array( 'firmware' => 'BLHeli_S', 'current' => '20A', 'cells' => '1–2S', 'mcu' => 'EFM8BB21', 'size' => '20x20mm' ), false ),
-		array( 'MOT-2207-1950', 'Motor 2207 1950KV', 'motor', 290000, 0, 60, '#16a34a', '2207 1950KV',
-			'Motor freestyle 5 inch 6S, nam châm N52H, trục titan 5mm.',
-			array( 'cells' => '6S', 'size' => '2207', 'current' => '42A (max)' ), true ),
-		array( 'MOT-1404-3800', 'Motor 1404 3800KV', 'motor', 220000, 0, 40, '#15803d', '1404 3800KV',
-			'Motor cho cinewhoop 3 inch / long range 4S.',
-			array( 'cells' => '4S', 'size' => '1404' ), false ),
-		array( 'FC-F722-STK', 'Stack F722 + ESC 50A BLHeli_32', 'flight-controller', 2350000, 2190000, 8, '#0f172a', 'F722 STACK',
-			'Stack FC F722 + ESC 4in1 50A, OSD, Blackbox 16MB, 5 UART.',
-			array( 'firmware' => 'BLHeli_32', 'current' => '50A', 'cells' => '3–6S', 'mcu' => 'STM32F722', 'size' => '30.5x30.5mm' ), true ),
-		array( 'FC-F405-AIO', 'FC F405 AIO 20A (Whoop)', 'flight-controller', 990000, 0, 15, '#334155', 'F405 AIO',
-			'FC tích hợp ESC 20A cho whoop 1–2S, ELRS onboard.',
-			array( 'firmware' => 'Bluejay', 'current' => '20A', 'cells' => '1–2S', 'mcu' => 'STM32F405', 'size' => '25.5x25.5mm' ), false ),
-		array( 'PROP-5143-3', 'Cánh 5143 3 lá (2 cặp)', 'canh-quat', 65000, 0, 200, '#f59e0b', 'PROP 5143',
-			'Cánh 5 inch 3 lá PC bền, phù hợp freestyle.', array( 'size' => '5.1 inch' ), false ),
-		array( 'BAT-6S-1300', 'Pin LiPo 6S 1300mAh 120C', 'pin-lipo', 750000, 690000, 20, '#2563eb', '6S 1300',
-			'Pin 6S cho freestyle 5 inch, jack XT60.', array( 'cells' => '6S' ), true ),
-		array( 'ACC-XT60-5', 'Jack XT60 đực/cái (5 cặp)', 'phu-kien', 45000, 0, 300, '#64748b', 'XT60',
-			'Jack nguồn XT60 chính hãng, vỏ nylon chịu nhiệt.', array(), false ),
-		array( 'ACC-CAP-35V', 'Tụ low-ESR 1000µF 35V', 'phu-kien', 25000, 0, 500, '#475569', 'CAP 35V',
-			'Tụ lọc nhiễu cho ESC, bắt buộc với setup 6S.', array(), false ),
-	);
-
 	$created = 0;
-	foreach ( $products as $p ) {
-		list( $sku, $name, $cat, $price, $sale, $stock, $color, $label, $short, $specs, $featured ) = $p;
-		if ( wc_get_product_id_by_sku( $sku ) ) {
+
+	// [SKU, tên, nhãn ảnh, số module, đen?, giá/m, phí cắt, phí khoan, cỡ khoan, phí taro, cỡ taro, hệ, rãnh, lỗ tâm, kg/m, nổi bật]
+	$profiles = array(
+		array( 'NDH-2020-B', 'Nhôm định hình 2020 bạc', '2020', 1, false, 45000, 5000, 4000, '5, 7', 5000, 'M5', '20 x 20 mm', '6 mm', 'Ø4,2 (taro M5)', '0,50', true ),
+		array( 'NDH-2020-D', 'Nhôm định hình 2020 đen', '2020', 1, true, 55000, 5000, 4000, '5, 7', 5000, 'M5', '20 x 20 mm', '6 mm', 'Ø4,2 (taro M5)', '0,50', false ),
+		array( 'NDH-3030-B', 'Nhôm định hình 3030 bạc', '3030', 1, false, 75000, 6000, 5000, '6.8, 9', 7000, 'M8', '30 x 30 mm', '8 mm', 'Ø6,8 (taro M8)', '0,85', true ),
+		array( 'NDH-4040-B', 'Nhôm định hình 4040 bạc', '4040', 1, false, 120000, 8000, 5000, '7, 9', 8000, 'M8, M10', '40 x 40 mm', '8 mm', 'Ø8,5 (taro M10)', '1,45', true ),
+		array( 'NDH-4040-D', 'Nhôm định hình 4040 đen', '4040', 1, true, 140000, 8000, 5000, '7, 9', 8000, 'M8, M10', '40 x 40 mm', '8 mm', 'Ø8,5 (taro M10)', '1,45', false ),
+		array( 'NDH-4080-B', 'Nhôm định hình 4080 bạc', '4080', 2, false, 220000, 10000, 5000, '7, 9', 8000, 'M8, M10', '40 x 80 mm', '8 mm', '2 x Ø8,5 (taro M10)', '2,60', true ),
+		array( 'NDH-4545-B', 'Nhôm định hình 4545 bạc', '4545', 1, false, 160000, 8000, 5000, '7, 9', 8000, 'M10, M12', '45 x 45 mm', '10 mm', 'Ø10,2 (taro M12)', '1,90', false ),
+	);
+	foreach ( $profiles as $i => $p ) {
+		if ( wc_get_product_id_by_sku( $p[0] ) ) {
 			continue;
 		}
 		$product = new WC_Product_Simple();
-		$product->set_name( $name );
-		$product->set_sku( $sku );
-		$product->set_regular_price( (string) $price );
-		if ( $sale ) {
-			$product->set_sale_price( (string) $sale );
+		$product->set_name( $p[1] );
+		$product->set_sku( $p[0] );
+		$product->set_regular_price( (string) $p[5] );
+		$product->set_menu_order( $i );
+		$product->set_featured( $p[15] );
+		$product->set_category_ids( array( $cat_ids['nhom-dinh-hinh'] ) );
+		$product->set_short_description( "Thanh nhôm định hình {$p[2]} hợp kim 6063-T5, anod " . ( $p[4] ? 'đen' : 'bạc' ) . '. Cắt theo chiều dài bạn nhập (mm), khoan lỗ và taro ren hai đầu theo yêu cầu.' );
+		$product->set_description(
+			'<p>Nhôm định hình hệ ' . esc_html( $p[11] ) . ', rãnh ' . esc_html( $p[12] ) . ', dùng dựng khung bàn thao tác, tủ điện, vỏ máy, giá kệ, cơ cấu tự động hoá.</p>' .
+			'<h3>Gia công</h3><ul><li>Cắt bằng máy cưa CNC, dung sai ±0,5 mm, mặt cắt vuông.</li><li>Khoan lỗ lắp lục giác / lỗ xuyên theo vị trí bạn nhập.</li><li>Taro ren lỗ tâm hai đầu để bắt bulong liên kết đầu thanh.</li></ul>' .
+			'<p>Mỗi thanh được dán nhãn thông số để dễ lắp ráp.</p>'
+		);
+		$meta = array(
+			'cut' => 'yes', 'price_m' => $p[5], 'cut_fee' => $p[6], 'min_len' => 20, 'max_len' => 6000,
+			'drill_fee' => $p[7], 'drill_sizes' => $p[8], 'tap_fee' => $p[9], 'tap_sizes' => $p[10],
+			'series' => $p[11], 'slot' => $p[12], 'center_hole' => $p[13], 'weight' => $p[14], 'finish' => $p[4] ? 'Anod đen' : 'Anod bạc',
+		);
+		foreach ( $meta as $k => $v ) {
+			$product->update_meta_data( "_ndh_{$k}", (string) $v );
+		}
+		$img = ndh_seed_profile_image( $p[1], $p[2], $p[3], $p[4] );
+		if ( $img ) {
+			$product->set_image_id( $img );
+		}
+		$product->save();
+		$created++;
+	}
+
+	// [SKU, tên, danh mục, giá, giá KM, tồn kho, màu ảnh, nhãn ảnh, mô tả, nổi bật]
+	$accessories = array(
+		array( 'PK-KE-2020', 'Ke góc L 2020 (kèm ốc)', 'ke-goc', 6000, 0, 500, '#0b63ce', 'KE 2020', 'Ke góc nhôm đúc cho hệ 20, kèm 2 bộ bulong M5 + ốc T.', true ),
+		array( 'PK-KE-4040', 'Ke góc L 4040 (kèm ốc)', 'ke-goc', 12000, 0, 400, '#1d4ed8', 'KE 4040', 'Ke góc nhôm đúc cho hệ 40, kèm 2 bộ bulong M8 + ốc T.', true ),
+		array( 'PK-KEAN-2020', 'Ke ẩn liên kết trong 2020', 'ke-goc', 15000, 12000, 200, '#1e40af', 'KE AN', 'Liên kết ẩn trong rãnh, mối nối gọn đẹp cho mặt bàn, tủ.', false ),
+		array( 'PK-TNUT-M5', 'Ốc T-nut M5 rãnh 6 (gói 50)', 'oc-bulong', 45000, 0, 100, '#475569', 'T-NUT M5', 'Ốc T thả rãnh cho hệ 20, thép mạ kẽm.', true ),
+		array( 'PK-TNUT-M8', 'Ốc T trượt M8 rãnh 8 (gói 50)', 'oc-bulong', 90000, 0, 100, '#334155', 'T-NUT M8', 'Ốc T trượt có bi chặn cho hệ 30/40.', true ),
+		array( 'PK-BL-M5', 'Bulong lục giác chìm M5x10 (gói 100)', 'oc-bulong', 50000, 0, 100, '#1f2937', 'M5x10', 'Bulong đầu trụ lục giác chìm inox 304.', false ),
+		array( 'PK-BANLE-40', 'Bản lề nhôm 4040', 'ban-le-tay-nam', 45000, 39000, 120, '#0f766e', 'BAN LE', 'Bản lề nhôm đúc cho cửa tủ khung 40, kèm ốc.', true ),
+		array( 'PK-TAYNAM-120', 'Tay nắm nhôm 120 mm', 'ban-le-tay-nam', 35000, 0, 150, '#0d9488', 'TAY NAM', 'Tay nắm cửa tủ / vỏ máy, khoảng cách lỗ 120 mm.', false ),
+		array( 'PK-CHAN-M8', 'Chân tăng chỉnh M8 đế Ø40', 'chan-banh-xe', 25000, 0, 300, '#b45309', 'CHAN M8', 'Chân tăng chỉnh cao độ, bắt vào lỗ tâm đã taro M8.', true ),
+		array( 'PK-BANHXE-25', 'Bánh xe 2,5" có khoá, ren M8', 'chan-banh-xe', 45000, 0, 200, '#c2410c', 'BANH XE', 'Bánh xe PU chịu tải 50 kg/bánh, có khoá.', false ),
+		array( 'PK-NAP-2020', 'Nắp bịt đầu 2020 (gói 10)', 'nap-bit-che-ranh', 20000, 0, 200, '#7c3aed', 'NAP 2020', 'Nắp nhựa đen bịt đầu thanh 2020.', false ),
+		array( 'PK-CHERANH-8', 'Nẹp che rãnh 8 (thanh 1 m)', 'nap-bit-che-ranh', 8000, 0, 500, '#6d28d9', 'CHE RANH', 'Nẹp nhựa che rãnh hệ 30/40, chống bụi, tăng thẩm mỹ.', false ),
+	);
+	foreach ( $accessories as $a ) {
+		if ( wc_get_product_id_by_sku( $a[0] ) ) {
+			continue;
+		}
+		$product = new WC_Product_Simple();
+		$product->set_name( $a[1] );
+		$product->set_sku( $a[0] );
+		$product->set_regular_price( (string) $a[3] );
+		if ( $a[4] ) {
+			$product->set_sale_price( (string) $a[4] );
 		}
 		$product->set_manage_stock( true );
-		$product->set_stock_quantity( $stock );
-		$product->set_short_description( $short );
-		$product->set_description(
-			"<p>{$short}</p>\n<h3>Trong hộp gồm</h3>\n<ul><li>1 x {$name}</li><li>Phụ kiện đi kèm theo nhà sản xuất</li></ul>\n" .
-			'<p>Bảo hành 30 ngày lỗi nhà sản xuất. Hỗ trợ cấu hình / flash firmware miễn phí.</p>'
-		);
-		$product->set_category_ids( array( $cat_ids[ $cat ] ) );
-		$product->set_featured( $featured );
-		$product->set_status( 'publish' );
-		foreach ( $specs as $k => $v ) {
-			$product->update_meta_data( "_mon_esc_{$k}", $v );
-		}
-		$img = mon_esc_seed_image( $name, $color, $label );
+		$product->set_stock_quantity( $a[5] );
+		$product->set_short_description( $a[8] );
+		$product->set_category_ids( array( $cat_ids['phu-kien'], $cat_ids[ $a[2] ] ) );
+		$product->set_featured( $a[9] );
+		$img = ndh_seed_tile_image( $a[1], $a[7], $a[6] );
 		if ( $img ) {
 			$product->set_image_id( $img );
 		}
@@ -222,7 +325,6 @@ if ( '1' === $env( 'SEED_DEMO', '1' ) ) {
 
 /* ---------------------------------------------------------------- Trang */
 
-// Xoá nội dung mẫu mặc định của WordPress.
 foreach ( array( 'sample-page' => 'page', 'hello-world' => 'post' ) as $slug => $type ) {
 	$p = get_page_by_path( $slug, OBJECT, $type );
 	if ( $p ) {
@@ -230,16 +332,18 @@ foreach ( array( 'sample-page' => 'page', 'hello-world' => 'post' ) as $slug => 
 	}
 }
 
-$pages = array(
-	'gioi-thieu'      => array( 'Giới thiệu', '<p>Mon ESC chuyên cung cấp ESC, motor và linh kiện FPV đã được kiểm tra và cấu hình tối ưu cho BLHeli / Bluejay / AM32.</p><p>Mỗi ESC xuất xưởng đều được flash firmware mới nhất, test motor và cài thông số phù hợp với setup của bạn.</p>' ),
-	'huong-dan-blheli' => array( 'Hướng dẫn cấu hình BLHeli', '<h2>1. Chuẩn bị</h2><p>Cài <strong>Betaflight Configurator</strong> và <strong>ESC Configurator</strong> (esc-configurator.com). Tháo cánh quạt trước khi thao tác.</p><h2>2. Kết nối</h2><p>Cắm pin cho drone, cắm USB vào FC, mở ESC Configurator và chọn cổng COM → <em>Connect</em> → <em>Read Settings</em>.</p><h2>3. Thông số khuyến nghị</h2><ul><li><strong>Motor timing:</strong> 16–22° cho freestyle 5 inch.</li><li><strong>PWM frequency:</strong> 48kHz (Bluejay) để motor êm hơn.</li><li><strong>Bidirectional DShot:</strong> bật để dùng RPM filter trong Betaflight.</li><li><strong>Startup power:</strong> giữ mặc định trừ khi motor khó khởi động.</li></ul><h2>4. Flash firmware</h2><p>Chọn <em>Flash All</em>, chọn phiên bản firmware phù hợp với MCU của ESC (xem tab Thông số trên trang sản phẩm). Không rút pin trong lúc flash.</p><p>Cần hỗ trợ? Gọi hotline hoặc nhắn Zalo, chúng tôi hỗ trợ miễn phí cho khách đã mua hàng.</p>' ),
-	'lien-he'         => array( 'Liên hệ', '<p><strong>Hotline / Zalo:</strong> ' . esc_html( $env( 'STORE_PHONE' ) ) . '</p><p><strong>Địa chỉ:</strong> ' . esc_html( $env( 'STORE_ADDRESS' ) . ', ' . $env( 'STORE_CITY' ) ) . '</p><p>Giờ làm việc: 8:30 – 21:00 hằng ngày.</p>' ),
-	'chinh-sach-doi-tra' => array( 'Chính sách đổi trả & bảo hành', '<ul><li>Đổi mới trong 7 ngày nếu lỗi do nhà sản xuất.</li><li>Bảo hành 30 ngày cho ESC, FC, motor.</li><li>Không bảo hành khi cháy do chập nguồn, ngược cực, rơi vỡ.</li></ul>' ),
-	'chinh-sach-van-chuyen' => array( 'Chính sách vận chuyển', '<ul><li>Phí ship đồng giá 30.000đ toàn quốc.</li><li>Miễn phí vận chuyển cho đơn từ 1.000.000đ.</li><li>Thời gian giao 2–4 ngày làm việc.</li></ul>' ),
+$phone   = esc_html( $env( 'STORE_PHONE' ) );
+$address = esc_html( trim( $env( 'STORE_ADDRESS' ) . ', ' . $env( 'STORE_CITY' ), ', ' ) );
+$pages   = array(
+	'gioi-thieu'         => array( 'Giới thiệu', '<p>Chúng tôi chuyên cung cấp nhôm định hình công nghiệp và phụ kiện lắp ráp, nhận cắt – khoan – taro theo bản vẽ cho khung bàn thao tác, tủ điện, vỏ máy, giá kệ và cơ cấu tự động hoá.</p><p>Xưởng trang bị máy cưa CNC, máy khoan và taro chuyên dụng, cam kết đúng kích thước – đúng hẹn.</p>' ),
+	'huong-dan-dat-hang' => array( 'Hướng dẫn đặt hàng gia công', '<h2>1. Chiều dài</h2><p>Nhập chiều dài thực tế của thanh (mm). Dung sai cắt ±0,5 mm.</p><h2>2. Đầu A, đầu B và các mặt</h2><p><strong>Đầu A</strong> là đầu bạn dùng làm gốc đo. Mọi vị trí lỗ khoan được tính <strong>từ đầu A tới tâm lỗ</strong>. Nhìn từ đầu A, các mặt được đánh số 1–4 theo chiều kim đồng hồ, bắt đầu từ mặt trên.</p><h2>3. Khoan lỗ</h2><ul><li>Lỗ Ø5 / Ø7 (hệ 20), Ø7 / Ø9 (hệ 40): lỗ đưa lục giác vào siết bulong liên kết đầu thanh.</li><li>Tâm lỗ phải cách mỗi đầu thanh ít nhất 5 mm.</li><li>Dùng nút <em>Chia đều…</em> để chia nhanh nhiều lỗ cách đều.</li></ul><h2>4. Taro ren</h2><p>Taro ren lỗ tâm ở đầu A và/hoặc đầu B để bắt bulong liên kết, chân tăng chỉnh, bánh xe.</p><h2>5. Giá</h2><p>Giá 1 thanh = đơn giá/mét × chiều dài + phí cắt + phí khoan × số lỗ + phí taro × số đầu (làm tròn lên 100đ). Giá hiện ngay khi bạn nhập.</p><h2>Có bản vẽ?</h2><p>Gửi bản vẽ qua Zalo ' . $phone . ' để được bóc tách vật tư và báo giá trọn bộ.</p>' ),
+	'lien-he'            => array( 'Liên hệ', '<p><strong>Hotline / Zalo:</strong> ' . $phone . '</p><p><strong>Xưởng:</strong> ' . $address . '</p><p>Giờ làm việc: 7:30 – 17:30, thứ 2 – thứ 7.</p><p>Gửi bản vẽ (ảnh, PDF, DWG, STEP) qua Zalo để được báo giá trong ngày.</p>' ),
+	'chinh-sach-doi-tra' => array( 'Chính sách đổi trả & bảo hành', '<ul><li>Hàng gia công theo yêu cầu (cắt, khoan, taro) không áp dụng đổi trả, trừ khi sai thông số so với đơn hàng — xưởng làm lại miễn phí.</li><li>Phụ kiện còn nguyên bao bì được đổi trong 7 ngày.</li><li>Kiểm tra hàng khi nhận; báo lỗi trong 48 giờ kèm hình ảnh.</li></ul>' ),
+	'chinh-sach-van-chuyen' => array( 'Chính sách vận chuyển', '<ul><li>Nhận tại xưởng: miễn phí.</li><li>Giao tận nơi: 50.000đ; miễn phí cho đơn từ 2.000.000đ.</li><li>Thanh dài trên 1,5 m giao bằng xe tải nhỏ hoặc nhà xe — chúng tôi sẽ gọi báo phí nếu ngoài khu vực.</li><li>Thời gian gia công 24–48 giờ trước khi giao.</li></ul>' ),
 );
 $page_ids = array();
 foreach ( $pages as $slug => $info ) {
-	$existing = get_page_by_path( $slug );
+	$existing          = get_page_by_path( $slug );
 	$page_ids[ $slug ] = $existing ? $existing->ID : wp_insert_post( array(
 		'post_type'    => 'page',
 		'post_status'  => 'publish',
@@ -249,21 +353,11 @@ foreach ( $pages as $slug => $info ) {
 	) );
 }
 update_option( 'woocommerce_terms_page_id', $page_ids['chinh-sach-doi-tra'] );
-update_option( 'wp_page_for_privacy_policy', $page_ids['chinh-sach-doi-tra'] );
-
-// Dùng checkout/giỏ hàng dạng shortcode (classic) để các tuỳ biến form địa chỉ Việt Nam trong plugin có hiệu lực.
-foreach ( array( 'cart' => '[woocommerce_cart]', 'checkout' => '[woocommerce_checkout]' ) as $wc_page => $shortcode ) {
-	$pid = wc_get_page_id( $wc_page );
-	if ( $pid > 0 && false === strpos( get_post_field( 'post_content', $pid ), $shortcode ) ) {
-		wp_update_post( array( 'ID' => $pid, 'post_content' => $shortcode ) );
-	}
-}
 
 /* ---------------------------------------------------------------- Menu */
 
 $add_menu = static function ( $name, $location, $items ) {
-	$menu = wp_get_nav_menu_object( $name );
-	if ( $menu ) {
+	if ( wp_get_nav_menu_object( $name ) ) {
 		return;
 	}
 	$menu_id = wp_create_nav_menu( $name );
@@ -274,8 +368,7 @@ $add_menu = static function ( $name, $location, $items ) {
 	$locations[ $location ] = $menu_id;
 	set_theme_mod( 'nav_menu_locations', $locations );
 };
-
-$cat_item = static function ( $slug ) use ( $cat_ids ) {
+$cat_item  = static function ( $slug ) use ( $cat_ids ) {
 	return array( 'menu-item-type' => 'taxonomy', 'menu-item-object' => 'product_cat', 'menu-item-object-id' => $cat_ids[ $slug ] );
 };
 $page_item = static function ( $id ) {
@@ -283,16 +376,17 @@ $page_item = static function ( $id ) {
 };
 
 $add_menu( 'Menu chính', 'primary', array(
-	$page_item( wc_get_page_id( 'shop' ) ),
-	$cat_item( 'esc' ),
-	$cat_item( 'motor' ),
-	$cat_item( 'flight-controller' ),
-	$cat_item( 'pin-lipo' ),
-	$page_item( $page_ids['huong-dan-blheli'] ),
+	$cat_item( 'nhom-dinh-hinh' ),
+	$cat_item( 'ke-goc' ),
+	$cat_item( 'oc-bulong' ),
+	$cat_item( 'ban-le-tay-nam' ),
+	$cat_item( 'chan-banh-xe' ),
+	$page_item( $page_ids['huong-dan-dat-hang'] ),
 	$page_item( $page_ids['lien-he'] ),
 ) );
 $add_menu( 'Menu chân trang', 'footer', array(
 	$page_item( $page_ids['gioi-thieu'] ),
+	$page_item( $page_ids['huong-dan-dat-hang'] ),
 	$page_item( $page_ids['chinh-sach-doi-tra'] ),
 	$page_item( $page_ids['chinh-sach-van-chuyen'] ),
 	$page_item( $page_ids['lien-he'] ),

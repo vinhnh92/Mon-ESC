@@ -4,7 +4,7 @@
 <footer class="site-footer">
 	<div class="container footer-grid">
 		<div>
-			<p class="footer-brand"><span class="logo-mark">⚡</span><?php bloginfo( 'name' ); ?></p>
+			<p class="footer-brand"><span class="logo-mark"><?php echo ndh_profile_svg(); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><?php bloginfo( 'name' ); ?></p>
 			<p><?php bloginfo( 'description' ); ?></p>
 		</div>
 		<div>
@@ -22,13 +22,13 @@
 		<div>
 			<h3>Liên hệ</h3>
 			<ul class="footer-menu">
-				<?php if ( mon_esc_phone() ) : ?>
-					<li><a href="tel:<?php echo esc_attr( mon_esc_phone() ); ?>">📞 <?php echo esc_html( mon_esc_phone() ); ?></a></li>
+				<?php if ( ndh_phone() ) : ?>
+					<li><a href="tel:<?php echo esc_attr( ndh_phone() ); ?>">📞 <?php echo esc_html( ndh_phone() ); ?></a></li>
 				<?php endif; ?>
 				<?php if ( get_option( 'woocommerce_store_address' ) ) : ?>
 					<li>📍 <?php echo esc_html( trim( get_option( 'woocommerce_store_address' ) . ', ' . get_option( 'woocommerce_store_city' ), ', ' ) ); ?></li>
 				<?php endif; ?>
-				<li>🕘 8:30 – 21:00 hằng ngày</li>
+				<li>🕘 7:30 – 17:30, thứ 2 – thứ 7</li>
 			</ul>
 		</div>
 		<div>

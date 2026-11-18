@@ -12,9 +12,9 @@
 
 <div class="topbar">
 	<div class="container topbar__inner">
-		<span>🚚 Freeship toàn quốc cho đơn từ 1.000.000đ</span>
-		<?php if ( mon_esc_phone() ) : ?>
-			<a href="tel:<?php echo esc_attr( mon_esc_phone() ); ?>">Hotline: <?php echo esc_html( mon_esc_phone() ); ?></a>
+		<span>📏 Cắt – khoan – taro nhôm định hình theo yêu cầu • Giao 24–48h</span>
+		<?php if ( ndh_phone() ) : ?>
+			<a href="tel:<?php echo esc_attr( ndh_phone() ); ?>">Hotline: <?php echo esc_html( ndh_phone() ); ?></a>
 		<?php endif; ?>
 	</div>
 </div>
@@ -30,7 +30,7 @@
 				<?php the_custom_logo(); ?>
 			<?php else : ?>
 				<a class="site-title" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
-					<span class="logo-mark">⚡</span><?php bloginfo( 'name' ); ?>
+					<span class="logo-mark"><?php echo ndh_profile_svg(); // phpcs:ignore WordPress.Security.EscapeOutput ?></span><?php bloginfo( 'name' ); ?>
 				</a>
 			<?php endif; ?>
 		</div>
@@ -47,7 +47,7 @@
 				</a>
 				<a class="action-link cart-link" href="<?php echo esc_url( wc_get_cart_url() ); ?>" title="Giỏ hàng">
 					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="10" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg>
-					<?php mon_esc_cart_count(); ?>
+					<?php ndh_cart_count(); ?>
 					<span class="screen-reader-text">Giỏ hàng</span>
 				</a>
 			<?php endif; ?>

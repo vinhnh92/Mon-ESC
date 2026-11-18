@@ -25,12 +25,12 @@ add_filter( 'woocommerce_output_related_products_args', function ( $args ) {
 // Cập nhật số lượng giỏ hàng trên header qua AJAX.
 add_filter( 'woocommerce_add_to_cart_fragments', function ( $fragments ) {
 	ob_start();
-	mon_esc_cart_count();
+	ndh_cart_count();
 	$fragments['.cart-count'] = ob_get_clean();
 	return $fragments;
 } );
 
-function mon_esc_cart_count() {
+function ndh_cart_count() {
 	$count = WC()->cart ? WC()->cart->get_cart_contents_count() : 0;
 	printf( '<span class="cart-count" data-count="%1$d">%1$d</span>', (int) $count );
 }
@@ -48,8 +48,8 @@ add_filter( 'woocommerce_sale_flash', function ( $html, $post, $product ) {
 // Ghi chú cam kết dưới nút thêm vào giỏ.
 add_action( 'woocommerce_after_add_to_cart_form', function () {
 	echo '<ul class="trust-list">'
-		. '<li>✓ Đã flash firmware & test motor trước khi giao</li>'
-		. '<li>✓ Freeship đơn từ 1.000.000đ</li>'
-		. '<li>✓ Đổi mới 7 ngày nếu lỗi nhà sản xuất</li>'
+		. '<li>✓ Cắt chính xác ±0,5 mm, mặt cắt vuông, sạch bavia</li>'
+		. '<li>✓ Gia công & giao trong 24–48h</li>'
+		. '<li>✓ Freeship nội thành cho đơn từ 2.000.000đ</li>'
 		. '</ul>';
 } );
